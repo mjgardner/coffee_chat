@@ -19,7 +19,7 @@ qs  = require 'querystring'
 MESSAGE_BACKLOG = 200
 SESSION_TIMEOUT = 60 * 1000
 
-channel = () ->
+channel = new ->
     messages  = []
     callbacks = []
 
