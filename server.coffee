@@ -6,10 +6,7 @@ starttime = (new Date()).getTime()
 
 mem = process.memoryUsage()
 # every 10 seconds poll for the memory.
-setInterval( ->
-    mem = process.memoryUsage()
-    return
-, 10*1000 )
+setInterval( ( -> mem = process.memoryUsage(); return ), 10 * 1000 )
 
 fu  = require './fu'
 sys = require 'sys'
@@ -26,17 +23,17 @@ channel = new ->
     @appendMessage = (nick, type, text) ->
         m =
             nick:      nick
-            type:      type     # "msg", "join", "part"
+            type:      type     # 'msg', 'join', 'part'
             text:      text
             timestamp: (new Date()).getTime()
 
         switch type
-            when "msg"  then sys.puts "<#{nick}> #{text}"
-            when "join" then sys.puts "#{nick} join"
-            when "part" then sys.puts "#{nick} part"
+            when 'msg'  then sys.puts "<#{nick}> #{text}"
+            when 'join' then sys.puts "#{nick} join"
+            when 'part' then sys.puts "#{nick} part"
 
         messages.push m
-        callbacks.shift().callback([m]) while callbacks.length > 0
+        callbacks.shift().callback( [m] ) while callbacks.length > 0
         messages.shift() while messages.length > MESSAGE_BACKLOG
         return
 
@@ -56,7 +53,8 @@ channel = new ->
     # they can hang around for at most 30 seconds.
     setInterval( ->
         now = new Date()
-        callbacks.shift().callback([]) while callbacks.length > 0 and now - callbacks[0].timestamp > 30 * 1000
+        while callbacks.length > 0 and now - callbacks[0].timestamp > 30 * 1000
+            callbacks.shift().callback([])
         return
     , 3000)
     return
@@ -74,17 +72,14 @@ createSession = (nick) ->
         nick:      nick
         id:        Math.floor(Math.random() * 99999999999).toString()
         timestamp: new Date()
-        poke:      ->
-            session.timestamp = new Date()
-            return
+        poke:      -> session.timestamp = new Date(); return
         destroy:   ->
-            channel.appendMessage session.nick, "part"
+            channel.appendMessage session.nick, 'part'
             delete sessions[session.id]
             return
 
     sessions[session.id] = session
     return session
-
 
 # interval to kill off old sessions
 setInterval( ->
@@ -94,7 +89,6 @@ setInterval( ->
         session.destroy() if now - session.timestamp > SESSION_TIMEOUT
     return
 , 1000)
-
 
 fu.listen Number(process.env.PORT or PORT), HOST
 
@@ -132,6 +126,7 @@ fu.get '/part', (req, res) ->
     if id and sessions[id]
         session = sessions[id]
         session.destroy()
+
     res.simpleJSON 200, {rss: mem.rss}
     return
 
@@ -146,7 +141,6 @@ fu.get '/recv', (req, res) ->
         session.poke()
 
     since = parseInt qs.parse(url.parse(req.url).query).since, 10
-
     channel.query since, (messages) ->
         session.poke() if session
         res.simpleJSON 200
@@ -165,7 +159,6 @@ fu.get '/send', (req, res) ->
         return
 
     session.poke()
-
     channel.appendMessage session.nick, 'msg', text
     res.simpleJSON 200, {rss: mem.rss}
     return
