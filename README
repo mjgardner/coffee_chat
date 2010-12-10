@@ -1,4 +1,5 @@
-Demo for node.js http://tinyclouds.org/node
+Demo for CoffeeScript
+Ported from JavaScript node_chat https://github.com/ry/node_chat
 
 to run
-$ /usr/local/bin/node server.js
+$ /usr/local/bin/coffee server.coffee
