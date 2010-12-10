@@ -22,10 +22,10 @@ channel = new ->
 
     @appendMessage = (nick, type, text) ->
         m =
-            nick:      nick
-            type:      type     # 'msg', 'join', 'part'
-            text:      text
-            timestamp: (new Date()).getTime()
+            nick      : nick
+            type      : type     # 'msg', 'join', 'part'
+            text      : text
+            timestamp : ( new Date() ).getTime()
 
         switch type
             when 'msg'  then sys.puts "<#{nick}> #{text}"
@@ -45,8 +45,8 @@ channel = new ->
             callback matching
         else
             callbacks.push
-                timestamp: new Date()
-                callback:  callback
+                timestamp : new Date()
+                callback  : callback
         return
 
     # clear old callbacks
@@ -54,7 +54,7 @@ channel = new ->
     setInterval( ->
         now = new Date()
         while callbacks.length > 0 and now - callbacks[0].timestamp > 30 * 1000
-            callbacks.shift().callback([])
+            callbacks.shift().callback( [] )
         return
     , 3000)
     return
@@ -69,23 +69,21 @@ createSession = (nick) ->
         return null if session and session.nick is nick
 
     session =
-        nick:      nick
-        id:        Math.floor(Math.random() * 99999999999).toString()
-        timestamp: new Date()
-        poke:      -> session.timestamp = new Date(); return
-        destroy:   ->
+        nick      : nick
+        id        : Math.floor(Math.random() * 99999999999).toString()
+        timestamp : new Date()
+        poke      : -> session.timestamp = new Date(); return
+        destroy   : ->
             channel.appendMessage session.nick, 'part'
             delete sessions[session.id]
             return
-
     sessions[session.id] = session
-    return session
 
 # interval to kill off old sessions
 setInterval( ->
     now = new Date()
     for id, session of sessions
-        continue if !sessions.hasOwnProperty id
+        continue unless sessions.hasOwnProperty id
         session.destroy() if now - session.timestamp > SESSION_TIMEOUT
     return
 , 1000)
@@ -115,10 +113,10 @@ fu.get '/join', (req, res) ->
 
     channel.appendMessage session.nick, 'join'
     res.simpleJSON 200
-        id:        session.id
-        nick:      session.nick
-        rss:       mem.rss
-        starttime: starttime
+        id        : session.id
+        nick      : session.nick
+        rss       : mem.rss
+        starttime : starttime
     return
 
 fu.get '/part', (req, res) ->
@@ -144,8 +142,8 @@ fu.get '/recv', (req, res) ->
     channel.query since, (messages) ->
         session.poke() if session
         res.simpleJSON 200
-            messages: messages
-            rss:      mem.rss
+            messages : messages
+            rss      : mem.rss
         return
     return
 
