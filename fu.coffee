@@ -2,13 +2,15 @@ createServer = require('http').createServer
 readFile = require('fs').readFile
 sys = require 'sys'
 url = require 'url'
-DEBUG = false
+DEBUG = true
+
+fu = exports
 
 NOT_FOUND = "Not Found\n"
 
 notFound = (req, res) ->
     res.writeHead 404,
-        'Content-Type'   :   'text/plain'
+        'Content-Type'   : 'text/plain'
         'Content-Length' : NOT_FOUND.length
     res.end NOT_FOUND
     return
@@ -25,13 +27,15 @@ server = createServer (req, res) ->
                 'Content-Type'   : 'text/plain'
                 'Content-Length' : body.length
             res.end body
+            return
 
         res.simpleJSON = (code, obj) ->
             body = new Buffer JSON.stringify(obj)
             res.writeHead code,
                 'Content-Type'   : 'text/json'
                 'Content-Length' : body.length
-            res.end
+            res.end body
+            return
 
         handler req, res
     return
@@ -50,7 +54,7 @@ extname = (path) ->
 @staticHandler = (filename) ->
     body    = ''
     headers = {}
-    content_type = @mime.lookupExtension(extname(filename))
+    content_type = fu.mime.lookupExtension(extname(filename))
 
     loadResponseData = (callback) ->
         if body and headers and not DEBUG
@@ -80,7 +84,7 @@ extname = (path) ->
 @mime =
     # returns MIME type for extension, or fallback, or octet-stream
     lookupExtension: (ext, fallback) =>
-        return @mime.TYPES[ext.toLowerCase()] or fallback or 'application/octet-stream'
+        return fu.mime.TYPES[ext.toLowerCase()] or fallback or 'application/octet-stream'
 
     TYPES:
         ".3gp"   : "video/3gpp"

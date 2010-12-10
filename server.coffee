@@ -2,7 +2,7 @@ HOST = null # localhost
 PORT = 8001
 
 # when the daemon started
-starttime = (new Date()).getTime()
+starttime = ( new Date() ).getTime()
 
 mem = process.memoryUsage()
 # every 10 seconds poll for the memory.
