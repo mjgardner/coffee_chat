@@ -61,6 +61,9 @@ channel = new ->
 
 sessions = {}
 
+randomString = ->
+    return "User" + Math.floor(Math.random() * 99999999999).toString()
+
 createSession = (nick) ->
     return null if nick.length > 50
     return null if /[^\w_\-^!]/.exec nick
@@ -103,8 +106,10 @@ fu.get '/who', (req, res) ->
 fu.get '/join', (req, res) ->
     nick = qs.parse(url.parse(req.url).query).nick
     if nick is null or nick.length is 0
-        res.simpleJSON 400, {error: 'Bad nick.'}
-        return
+        #res.simpleJSON 400, {error: 'Bad nick.'}
+        #return
+        nick = randomString()
+        sys.puts("Picked random nick " + nick)
 
     session = createSession nick
     if session is null

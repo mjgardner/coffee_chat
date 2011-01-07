@@ -109,7 +109,7 @@ Date.fromString = function(str) {
 
 //updates the users link to reflect the number of active users
 function updateUsersLink ( ) {
-  var t = nicks.length.toString() + " user";
+  var t = (nicks.length + 1).toString() + " user";
   if (nicks.length != 1) t += "s";
   $("#usersLink").text(t);
 }
@@ -258,7 +258,7 @@ var transmission_errors = 0;
 var first_poll = true;
 
 
-//process updates if we have any, request updates from the server,
+// process updates if we have any, request updates from the server,
 // and call again with response. the last part is like recursion except the call
 // is being made from the response handler, and not at some point during the
 // function's execution.
