@@ -433,7 +433,7 @@ $(document).ready(function() {
     $("#entry").attr("value", ""); // clear the entry field.
   });
 
-  $("#usersLink").click(outputUsers);
+  $("#usersLink").click(who);
 
   //make the actual join request to the server
   $.ajax({ cache: false
@@ -448,6 +448,7 @@ $(document).ready(function() {
          });
   // remove fixtures
   $("#log table").remove();
+  nicks = [];
 
   //begin listening for updates right away
   //interestingly, we don't need to join a room to get its updates

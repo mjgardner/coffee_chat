@@ -69,7 +69,7 @@ createSession = (nick) ->
     return null if nick.length == 0
     return null if /[^\w_\-^!]/.exec nick
 
-    for session in sessions
+    for id, session of sessions
         return null if session and session.nick is nick
 
     session =
@@ -100,7 +100,7 @@ fu.get("/#{asset}", fu.staticHandler asset) for asset in [
 ]
 
 fu.get '/who', (req, res) ->
-    nicks = (session.nick for session in sessions)
+    nicks = (session.nick for id, session of sessions)
     res.simpleJSON 200, {nicks: nicks, rss: mem.rss}
     return
 
