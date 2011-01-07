@@ -1,5 +1,6 @@
 var CONFIG = { debug: false
              , nick: "#"   // set in onConnect
+             , nick_re: new RegExp("nick")
              , id: null    // set in onConnect
              , last_message_time: 1
              , focus: true //event listeners bound in onConnect
@@ -105,7 +106,7 @@ Date.fromString = function(str) {
 
 //  CUT  ///////////////////////////////////////////////////////////////////
 
-MAGIC = "#!#!#!"
+MAGIC = "##xx##"
 MAGIC_RE = new RegExp('^' + MAGIC);
 
 //updates the users link to reflect the number of active users
