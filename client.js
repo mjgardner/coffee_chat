@@ -284,7 +284,7 @@ function onSpecialCommand(from, msg){
 // function's execution.
 function longPoll (data) {
   if (transmission_errors > 2) {
-    showConnect();
+    alert("Got transmission error, please reload.");
     return;
   }
 
