@@ -109,7 +109,7 @@ Date.fromString = function(str) {
 
 //updates the users link to reflect the number of active users
 function updateUsersLink ( ) {
-  var t = (nicks.length + 1).toString() + " user";
+  var t = nicks.length.toString() + " user";
   if (nicks.length != 1) t += "s";
   $("#usersLink").text(t);
 }
@@ -344,14 +344,6 @@ function send(msg) {
   }
 }
 
-//Transition the page to the state that prompts the user for a nickname
-function showConnect () {
-  $("#connect").show();
-  $("#loading").hide();
-  $("#toolbar").hide();
-  $("#nickInput").focus();
-}
-
 //transition the page to the loading screen
 function showLoad () {
   $("#connect").hide();
@@ -388,7 +380,7 @@ var rss;
 function onConnect (session) {
   if (session.error) {
     alert("error connecting: " + session.error);
-    showConnect();
+    //showConnect();
     return;
   }
 
@@ -443,53 +435,17 @@ $(document).ready(function() {
 
   $("#usersLink").click(outputUsers);
 
-  //try joining the chat when the user clicks the connect button
-  $("#connectButton").click(function () {
-    //lock the UI while waiting for a response
-    showLoad();
-    var nick = $("#nickInput").attr("value");
-
-    //dont bother the backend if we fail easy validations
-    if (nick.length > 50) {
-      alert("Nick too long. 50 character max.");
-      showConnect();
-      return false;
-    }
-
-    //more validations
-    if (/[^\w_\-^!]/.exec(nick)) {
-      alert("Bad character in nick. Can only have letters, numbers, and '_', '-', '^', '!'");
-      showConnect();
-      return false;
-    }
-
-    //make the actual join request to the server
-    $.ajax({ cache: false
-           , type: "GET" // XXX should be POST
-           , dataType: "json"
-           , url: "/join"
-           , data: { nick: nick }
-           , error: function () {
-               alert("error connecting to server");
-               showConnect();
-             }
-           , success: onConnect
-           });
-    return false;
-  });
-
-  // update the daemon uptime every 10 seconds
-  /* setInterval(function () {
-    updateUptime();
-  }, 10*1000); */
-
-  if (CONFIG.debug) {
-    $("#loading").hide();
-    $("#connect").hide();
-    scrollDown();
-    return;
-  }
-
+  //make the actual join request to the server
+  $.ajax({ cache: false
+         , type: "GET" // XXX should be POST
+         , dataType: "json"
+         , url: "/join"
+         , data: { nick: "" }
+         , error: function () {
+             alert("error connecting to server");
+           }
+         , success: onConnect
+         });
   // remove fixtures
   $("#log table").remove();
 
@@ -497,8 +453,6 @@ $(document).ready(function() {
   //interestingly, we don't need to join a room to get its updates
   //we just don't show the chat stream to the user until we create a session
   longPoll();
-
-  showConnect();
 });
 
 //if we can, notify the server that we're going away.

@@ -66,6 +66,7 @@ randomUserNick = ->
 
 createSession = (nick) ->
     return null if nick.length > 50
+    return null if nick.length == 0
     return null if /[^\w_\-^!]/.exec nick
 
     for session in sessions
@@ -105,16 +106,11 @@ fu.get '/who', (req, res) ->
 
 fu.get '/join', (req, res) ->
     nick = qs.parse(url.parse(req.url).query).nick
-    if nick is null or nick.length is 0
-        #res.simpleJSON 400, {error: 'Bad nick.'}
-        #return
-        nick = randomUserNick()
-        sys.puts("No nick given, picked random nick " + nick)
-
     session = createSession nick
-    if session is null
-        res.simpleJSON 400, {error: 'Nick in use'}
-        return
+    while session == null
+        nick = randomUserNick()
+        sys.puts("No or bad nick given, picked random nick " + nick)
+        session = createSession nick
 
     channel.appendMessage session.nick, 'join'
     res.simpleJSON 200
