@@ -126,10 +126,12 @@ function userJoin(nick, timestamp) {
   nicks.push(nick);
   //update the UI
   updateUsersLink();
+  $("body").append('<div class="user" id="' + nick + '">x</div>');
 }
 
 //handles someone leaving
 function userPart(nick, timestamp) {
+  $("#" + nick).remove();
   //put it in the stream
   addMessage(nick, "left", timestamp, "part");
   //remove the user from the list
@@ -265,9 +267,12 @@ var first_poll = true;
 
 function onSpecialCommand(from, msg){
   if(!first_poll) {
-    if (!CONFIG.nick_re.exec(from)) {
-      alert(msg);
-    }
+    //if (!CONFIG.nick_re.exec(from)) {
+      coords = msg.split(",");
+      x = coords[0]; y = coords[1];
+      elem = $("#" + from);
+      elem.animate({left: x, top: y}, 'slow');
+    //}
   }
 }
 
