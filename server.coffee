@@ -61,7 +61,7 @@ channel = new ->
 
 sessions = {}
 
-randomString = ->
+randomUserNick = ->
     return "User" + Math.floor(Math.random() * 99999999999).toString()
 
 createSession = (nick) ->
@@ -108,8 +108,8 @@ fu.get '/join', (req, res) ->
     if nick is null or nick.length is 0
         #res.simpleJSON 400, {error: 'Bad nick.'}
         #return
-        nick = randomString()
-        sys.puts("Picked random nick " + nick)
+        nick = randomUserNick()
+        sys.puts("No nick given, picked random nick " + nick)
 
     session = createSession nick
     if session is null
