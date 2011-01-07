@@ -92,7 +92,7 @@ fu.listen Number(process.env.PORT or PORT), HOST
 
 fu.get '/', fu.staticHandler 'index.html'
 fu.get("/#{asset}", fu.staticHandler asset) for asset in [
-    'style.css', 'client.js', 'jquery-1.2.6.min.js'
+    'style.css', 'client.js', 'jquery-1.4.4.min.js'
 ]
 
 fu.get '/who', (req, res) ->
