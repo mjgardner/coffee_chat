@@ -1,5 +1,6 @@
 var CONFIG = { debug: false
              , nick: "#"   // set in onConnect
+             , nick_re: new RegExp("nick")
              , id: null    // set in onConnect
              , last_message_time: 1
              , focus: true //event listeners bound in onConnect
@@ -105,7 +106,8 @@ Date.fromString = function(str) {
 
 //  CUT  ///////////////////////////////////////////////////////////////////
 
-
+MAGIC = "##xx##"
+MAGIC_RE = new RegExp('^' + MAGIC);
 
 //updates the users link to reflect the number of active users
 function updateUsersLink ( ) {
@@ -125,10 +127,12 @@ function userJoin(nick, timestamp) {
   nicks.push(nick);
   //update the UI
   updateUsersLink();
+  $("body").append('<div class="user" id="' + nick + '">x</div>');
 }
 
 //handles someone leaving
 function userPart(nick, timestamp) {
+  $("#" + nick).remove();
   //put it in the stream
   addMessage(nick, "left", timestamp, "part");
   //remove the user from the list
@@ -194,6 +198,12 @@ function scrollDown () {
 function addMessage (from, text, time, _class) {
   if (text === null)
     return;
+  
+  // if we get a magic message and we aren't the ones who sent it, do special sauce.
+  if(MAGIC_RE.exec(text)) {
+    onSpecialCommand(from, text.replace(MAGIC_RE,""));
+    return;
+  }
 
   if (time == null) {
     // if the time is null or undefined, use the current time.
@@ -217,8 +227,7 @@ function addMessage (from, text, time, _class) {
   text = util.toStaticHTML(text);
 
   // If the current user said this, add a special css class
-  var nick_re = new RegExp(CONFIG.nick);
-  if (nick_re.exec(text))
+  if (CONFIG.nick_re.exec(from))
     messageElement.addClass("personal");
 
   // replace URLs with links
@@ -257,14 +266,25 @@ function updateUptime () {
 var transmission_errors = 0;
 var first_poll = true;
 
+function onSpecialCommand(from, msg){
+  if(!first_poll) {
+    //if (!CONFIG.nick_re.exec(from)) {
+      coords = msg.split(",");
+      x = coords[0]; y = coords[1];
+      elem = $("#" + from);
+      elem.animate({left: x, top: y}, 'slow');
+    //}
+  }
+}
 
-//process updates if we have any, request updates from the server,
+
+// process updates if we have any, request updates from the server,
 // and call again with response. the last part is like recursion except the call
 // is being made from the response handler, and not at some point during the
 // function's execution.
 function longPoll (data) {
   if (transmission_errors > 2) {
-    showConnect();
+    alert("Got transmission error, please reload.");
     return;
   }
 
@@ -290,6 +310,7 @@ function longPoll (data) {
             CONFIG.unread++;
           }
           addMessage(message.nick, message.text, message.timestamp);
+          
           break;
 
         case "join":
@@ -344,14 +365,6 @@ function send(msg) {
   }
 }
 
-//Transition the page to the state that prompts the user for a nickname
-function showConnect () {
-  $("#connect").show();
-  $("#loading").hide();
-  $("#toolbar").hide();
-  $("#nickInput").focus();
-}
-
 //transition the page to the loading screen
 function showLoad () {
   $("#connect").hide();
@@ -388,11 +401,12 @@ var rss;
 function onConnect (session) {
   if (session.error) {
     alert("error connecting: " + session.error);
-    showConnect();
+    //showConnect();
     return;
   }
 
   CONFIG.nick = session.nick;
+  CONFIG.nick_re = new RegExp(session.nick);
   CONFIG.id   = session.id;
   starttime   = new Date(session.starttime);
   rss         = session.rss;
@@ -414,6 +428,12 @@ function onConnect (session) {
     updateTitle();
   });
 }
+
+function onClick(e) {
+  x = e.pageX; y = e.pageY;
+  send(MAGIC + x + "," + y);
+}
+  
 
 //add a list of present chat members to the stream
 function outputUsers () {
@@ -441,64 +461,31 @@ $(document).ready(function() {
     $("#entry").attr("value", ""); // clear the entry field.
   });
 
-  $("#usersLink").click(outputUsers);
+  $("#usersLink").click(who);
 
-  //try joining the chat when the user clicks the connect button
-  $("#connectButton").click(function () {
-    //lock the UI while waiting for a response
-    showLoad();
-    var nick = $("#nickInput").attr("value");
-
-    //dont bother the backend if we fail easy validations
-    if (nick.length > 50) {
-      alert("Nick too long. 50 character max.");
-      showConnect();
-      return false;
-    }
-
-    //more validations
-    if (/[^\w_\-^!]/.exec(nick)) {
-      alert("Bad character in nick. Can only have letters, numbers, and '_', '-', '^', '!'");
-      showConnect();
-      return false;
-    }
-
-    //make the actual join request to the server
-    $.ajax({ cache: false
-           , type: "GET" // XXX should be POST
-           , dataType: "json"
-           , url: "/join"
-           , data: { nick: nick }
-           , error: function () {
-               alert("error connecting to server");
-               showConnect();
-             }
-           , success: onConnect
-           });
-    return false;
-  });
-
-  // update the daemon uptime every 10 seconds
-  setInterval(function () {
-    updateUptime();
-  }, 10*1000);
-
-  if (CONFIG.debug) {
-    $("#loading").hide();
-    $("#connect").hide();
-    scrollDown();
-    return;
-  }
-
+  //make the actual join request to the server
+  $.ajax({ cache: false
+         , type: "GET" // XXX should be POST
+         , dataType: "json"
+         , url: "/join"
+         , data: { nick: "" }
+         , error: function () {
+             alert("error connecting to server");
+           }
+         , success: onConnect
+         });
   // remove fixtures
   $("#log table").remove();
+  nicks = [];
+
+  
+  $(document).click(onClick);
+  
 
   //begin listening for updates right away
   //interestingly, we don't need to join a room to get its updates
   //we just don't show the chat stream to the user until we create a session
   longPoll();
-
-  showConnect();
 });
 
 //if we can, notify the server that we're going away.

@@ -61,11 +61,15 @@ channel = new ->
 
 sessions = {}
 
+randomUserNick = ->
+    return "User" + Math.floor(Math.random() * 99999999999).toString()
+
 createSession = (nick) ->
     return null if nick.length > 50
+    return null if nick.length == 0
     return null if /[^\w_\-^!]/.exec nick
 
-    for session in sessions
+    for id, session of sessions
         return null if session and session.nick is nick
 
     session =
@@ -92,24 +96,21 @@ fu.listen Number(process.env.PORT or PORT), HOST
 
 fu.get '/', fu.staticHandler 'index.html'
 fu.get("/#{asset}", fu.staticHandler asset) for asset in [
-    'style.css', 'client.js', 'jquery-1.2.6.min.js'
+    'style.css', 'client.js'
 ]
 
 fu.get '/who', (req, res) ->
-    nicks = (session.nick for session in sessions)
+    nicks = (session.nick for id, session of sessions)
     res.simpleJSON 200, {nicks: nicks, rss: mem.rss}
     return
 
 fu.get '/join', (req, res) ->
     nick = qs.parse(url.parse(req.url).query).nick
-    if nick is null or nick.length is 0
-        res.simpleJSON 400, {error: 'Bad nick.'}
-        return
-
     session = createSession nick
-    if session is null
-        res.simpleJSON 400, {error: 'Nick in use'}
-        return
+    while session == null
+        nick = randomUserNick()
+        sys.puts("No or bad nick given, picked random nick " + nick)
+        session = createSession nick
 
     channel.appendMessage session.nick, 'join'
     res.simpleJSON 200
